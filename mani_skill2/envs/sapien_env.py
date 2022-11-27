@@ -52,7 +52,7 @@ class BaseEnv(gym.Env):
     # fmt: off
     SUPPORTED_OBS_MODES = (
         "state", "state_dict", "none", "rgbd", "pointcloud", 
-        "rgbd_robot_seg", "pointcloud_robot_seg",
+        "rgbd_robot_seg", "pointcloud_robot_seg", "rgbd_robot_particle_seg", "pointcloud_robot_particle_seg"
     )
     SUPPORTED_REWARD_MODES = ("dense", "sparse")
     # fmt: on
@@ -190,6 +190,10 @@ class BaseEnv(gym.Env):
             return self._get_obs_rgbd_robot_seg()
         elif self._obs_mode == "pointcloud_robot_seg":
             return self._get_obs_pointcloud_robot_seg()
+        elif self._obs_mode == "rgbd_robot_particle_seg":
+            return self._get_obs_rgbd_robot_particle_seg()
+        elif self._obs_mode == "pointcloud_robot_particle_seg":
+            return self._get_obs_pointcloud_robot_particle_seg()
         else:
             raise NotImplementedError(self._obs_mode)
 
@@ -224,7 +228,7 @@ class BaseEnv(gym.Env):
         )
 
     def _get_obs_images(
-        self, rgb=True, depth=True, visual_seg=False, actor_seg=False
+          self, rgb=True, depth=True, visual_seg=False, actor_seg=False, particle_seg=False
     ) -> OrderedDict:
         """Get observations from cameras.
 
@@ -247,11 +251,11 @@ class BaseEnv(gym.Env):
             camera.take_picture()
 
         obs_dict = self.agent.get_camera_images(
-            rgb=rgb, depth=depth, visual_seg=visual_seg, actor_seg=actor_seg
+            rgb=rgb, depth=depth, visual_seg=visual_seg, actor_seg=actor_seg, particle_seg=particle_seg
         )
         for name, camera in self._cameras.items():
             obs_dict[name] = self._get_camera_images(
-                camera, rgb=rgb, depth=depth, visual_seg=visual_seg, actor_seg=actor_seg
+                camera, rgb=rgb, depth=depth, visual_seg=visual_seg, actor_seg=actor_seg, particle_seg=particle_seg
             )
         return obs_dict
 
@@ -300,6 +304,11 @@ class BaseEnv(gym.Env):
         mask = np.isin(actor_seg, self.agent.robot_link_ids)
         return actor_seg * mask
 
+    def _get_particle_seg(self, particle_seg):
+        """Get the segmentation mask of visible particles."""
+        mask = particle_seg == 1
+        return particle_seg * mask
+
     def _get_obs_rgbd_robot_seg(self):
         obs = self._get_obs_rgbd(actor_seg=True)
         for image in obs["image"].values():
@@ -310,6 +319,20 @@ class BaseEnv(gym.Env):
         obs = self._get_obs_pointcloud(actor_seg=True)
         pointcloud = obs["pointcloud"]
         pointcloud["robot_seg"] = self._get_robot_seg(pointcloud.pop("actor_seg"))
+        return obs
+
+    def _get_obs_rgbd_robot_particle_seg(self):
+        obs = self._get_obs_rgbd(actor_seg=True, particle_seg=True)
+        for image in obs["image"].values():
+            image["robot_seg"] = self._get_robot_seg(image.pop("actor_seg"))
+            image["particle_seg"] = self._get_robot_seg(image.pop("particle_seg"))
+        return obs
+
+    def _get_obs_pointcloud_robot_particle_seg(self):
+        obs = self._get_obs_pointcloud(actor_seg=True, particle_seg=True)
+        pointcloud = obs["pointcloud"]
+        pointcloud["particle_seg"] = self._get_particle_seg(pointcloud.pop("particle_seg"))
+        import ipdb; ipdb.set_trace()
         return obs
 
     # -------------------------------------------------------------------------- #

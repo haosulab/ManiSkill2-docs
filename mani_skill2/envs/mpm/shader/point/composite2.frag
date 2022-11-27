@@ -164,6 +164,14 @@ void main() {
   uvec4 seg1 = texture(samplerSegmentation1, inUV);
   outSegmentation = d0 < d1 ? seg0 : seg1;
 
+  if (pointDepth < 0) {
+    if (dp < min(min(d0, d1), d2))  {
+      outSegmentation.z = 1;
+    } else {
+      outSegmentation.z = 2;
+    }
+  }
+
   outSegmentationView0 = mix(vec4(0,0,0,1), colors[outSegmentation.x % 60], sign(outSegmentation.x));
   outSegmentationView1 = mix(vec4(0,0,0,1), colors[outSegmentation.y % 60], sign(outSegmentation.y));
 

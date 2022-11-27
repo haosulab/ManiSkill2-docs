@@ -74,7 +74,8 @@ def get_camera_seg(camera: sapien.CameraEntity):
     seg = get_texture(camera, "Segmentation", "uint32")  # [H, W, 4]
     # channel 0 is visual id (mesh-level)
     # channel 1 is actor id (actor-level)
-    return seg[..., :2]
+    # channel 2 stores custom data, e.g., particle seg
+    return seg[..., :3]
 
 
 def get_camera_images(
@@ -83,6 +84,7 @@ def get_camera_images(
     depth=False,
     visual_seg=False,
     actor_seg=False,
+    particle_seg=False,
 ) -> Dict[str, np.ndarray]:
     # Assume camera.take_picture() is called
     images = OrderedDict()
@@ -96,6 +98,8 @@ def get_camera_images(
             images["visual_seg"] = seg[..., 0:1]
         if actor_seg:
             images["actor_seg"] = seg[..., 1:2]
+        if particle_seg:
+            images["particle_seg"] = seg[..., 2:3]
     return images
 
 
@@ -104,6 +108,7 @@ def get_camera_pcd(
     rgb=True,
     visual_seg=False,
     actor_seg=False,
+    particle_seg=False,
 ) -> Dict[str, np.ndarray]:
     # Assume camera.take_picture() is called
     pcd = OrderedDict()
@@ -113,12 +118,14 @@ def get_camera_pcd(
     pcd["xyzw"] = position.reshape(-1, 4)
     if rgb:
         pcd["rgb"] = get_camera_rgb(camera).reshape(-1, 3)
-    if visual_seg or actor_seg:
+    if visual_seg or actor_seg or particle_seg:
         seg = get_camera_seg(camera)
         if visual_seg:
             pcd["visual_seg"] = seg[..., 0].reshape(-1, 1)
         if actor_seg:
             pcd["actor_seg"] = seg[..., 1].reshape(-1, 1)
+        if particle_seg:
+            pcd["particle_seg"] = seg[..., 2].reshape(-1, 1)
     return pcd
 
 

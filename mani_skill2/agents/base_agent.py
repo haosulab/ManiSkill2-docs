@@ -224,7 +224,7 @@ class BaseAgent:
             cam.take_picture()
 
     def get_camera_images(
-        self, rgb=True, depth=False, visual_seg=False, actor_seg=False
+        self, rgb=True, depth=False, visual_seg=False, actor_seg=False, particle_seg=False
     ) -> Dict[str, Dict[str, np.ndarray]]:
         # Assume scene.update_render() and camera.take_picture() are called
         ret = OrderedDict()
@@ -232,7 +232,7 @@ class BaseAgent:
 
         for name, cam in self.cameras.items():
             images = get_camera_images(
-                cam, rgb=rgb, depth=depth, visual_seg=visual_seg, actor_seg=actor_seg
+                cam, rgb=rgb, depth=depth, visual_seg=visual_seg, actor_seg=actor_seg, particle_seg=particle_seg
             )
             images["camera_intrinsic"] = cam.get_intrinsic_matrix()
             images["camera_extrinsic"] = cam.get_extrinsic_matrix()
@@ -249,12 +249,12 @@ class BaseAgent:
             poses[name] = cam.get_pose().to_transformation_matrix()
         return poses
 
-    def get_camera_pcd(self, rgb=True, visual_seg=False, actor_seg=False, fuse=False):
+    def get_camera_pcd(self, rgb=True, visual_seg=False, actor_seg=False, particle_seg=False, fuse=False):
         # Assume scene.update_render() and camera.take_picture() are called
         ret = OrderedDict()
 
         for name, cam in self.cameras.items():
-            pcd = get_camera_pcd(cam, rgb, visual_seg, actor_seg)  # dict
+            pcd = get_camera_pcd(cam, rgb, visual_seg, actor_seg, particle_seg)  # dict
             # Model matrix is the transformation from OpenGL camera space to SAPIEN world space
             # camera.get_model_matrix() must be called after scene.update_render()!
             T = cam.get_model_matrix()

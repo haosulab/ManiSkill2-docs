@@ -54,7 +54,7 @@ def task(meshes):
 
 class MPMBaseEnv(BaseEnv):
     # fmt: off
-    SUPPORTED_OBS_MODES = ("none", "rgbd", "pointcloud", "rgbd_robot_seg", "pointcloud_robot_seg")
+    SUPPORTED_OBS_MODES = ("none", "rgbd", "pointcloud", "rgbd_robot_seg", "pointcloud_robot_seg", "rgbd_robot_particle_seg", "pointcloud_robot_particle_seg")
     # fmt: on
 
     def __init__(
