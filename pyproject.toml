@@ -1,7 +1,8 @@
 [tool.black]
 line_length = 88     # default
-extend-exclude = '''^/warp_maniskill'''
+extend-exclude = '''^/warp_maniskill|^/docs'''
+
 
 [tool.isort]
 profile = "black"
-skip_glob = ["*/build/*", "*/warp_maniskill/*"]
+skip_glob = ["*/build/*", "*/warp_maniskill/*", "*/docs/*"]
